@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: deploying-miscroservice-HorizontalPodAutoscaler
+  name: deploying-microservice-HorizontalPodAutoscaler
   namespace: deploying-microservice-namespace
 spec:
   scaleTargetRef:
