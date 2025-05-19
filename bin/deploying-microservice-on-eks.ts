@@ -4,7 +4,14 @@ import { IamAndVpcStack } from '../lib/IamAndVpc-stack';
 import { EksClusterStack } from '../lib/EksCluster-stack';
 
 const app = new cdk.App();
-new IamAndVpcStack(app, 'IamAndVpcStack', {
+const targetStack = app.node.tryGetContext('stack');
+const env = { account: '654654582602', region: 'us-east-1' };
+
+if (targetStack === 'iam-vpc') {
+  new IamAndVpcStack(app, 'IamAndVpcStack', { env });}
+
+if (targetStack === 'eks-cluster') {
+  new EksClusterStack(app, 'EksClusterStack', { env });}
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -15,9 +22,5 @@ new IamAndVpcStack(app, 'IamAndVpcStack', {
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: { account: '654654582602', region: 'us-east-1' },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
-new EksClusterStack(app, 'EksClusterStack', {
-   env: { account: '654654582602', region: 'us-east-1' },});

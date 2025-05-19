@@ -44,7 +44,7 @@ jobs:
           aws sts get-caller-identity
 
       - name: Deploy CDK Stack for IAM role and Vpc
-        run: cdk deploy IamAndVpcStack --require-approval never
+        run: cdk deploy --context stack=iam-vpc
 
       - name: Get IAM Role ARN from CloudFormation
         id: get_role
@@ -84,6 +84,6 @@ jobs:
         run: |
           kubectl apply -f manifests/namespace.yaml --validate=false
 
-      - name: Deploy CDK Stack
-        run: cdk deploy --require-approval never
+      - name: Deploy EKS cluster Stack
+        run: cdk deploy --context stack=eks-cluster
 
