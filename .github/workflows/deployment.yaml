@@ -24,11 +24,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Bootstrap CDK
-        run: cdk bootstrap
-
       - name: Install dependencies
         run: npm install 
+
+      - name: Bootstrap CDK
+        run: cdk bootstrap
 
       - name: Update kubeconfig for EKS Cluster
         run: |
