@@ -31,7 +31,7 @@ jobs:
         run: npm install 
 
       - name: Bootstrap CDK
-        run: cdk bootstrap aws://654654582602/us-east-1
+        run: cdk bootstrap 
 
       - name: Replace placeholders in Secret manifest
         run: |
@@ -39,51 +39,10 @@ jobs:
               -e "s|PLACEHOLDER_AWS_SECRET_ACCESS_KEY|${{ secrets.AWS_SECRET_ACCESS_KEY }}|" \
               manifests/configMap-secret.yaml    
 
-      - name: Get caller identity
-        run: |
-          aws sts get-caller-identity
-
-      - name: Deploy CDK Stack for IAM role and Vpc
-        run: cdk deploy --context stack=iam-vpc
-
-      - name: Get IAM Role ARN from CloudFormation
-        id: get_role
-        run: |
-          ROLE_ARN=$(aws cloudformation describe-stacks \
-          --stack-name IamAndVpcStack \
-          --query "Stacks[0].Outputs[?OutputKey=='IamRoleForClusterArn'].OutputValue" \
-          --output text)
-          echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
-
-      - name: Install jq (required for JSON parsing)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Assume IAM role
-        id: assume_role
-        run: |
-          CREDS=$(aws sts assume-role \
-          --role-arn "${{ steps.get_role.outputs.role_arn }}" \
-          --role-session-name GitHubActionsSession)
-
-          echo "AWS_ACCESS_KEY_ID=$(echo $CREDS | jq -r '.Credentials.AccessKeyId')" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$(echo $CREDS | jq -r '.Credentials.SecretAccessKey')" >> $GITHUB_ENV
-          echo "AWS_SESSION_TOKEN=$(echo $CREDS | jq -r '.Credentials.SessionToken')" >> $GITHUB_ENV
-
-      - name: Get caller identity
-        run: |
-          aws sts get-caller-identity
-
       - name: Update kubeconfig for EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name EksCluster  
-         
-      - name: Test kubectl authentication
-        run: kubectl get nodes
 
-      - name: Apply namespace manifest
-        run: |
-          kubectl apply -f manifests/namespace.yaml --validate=false
-
-      - name: Deploy EKS cluster Stack
-        run: cdk deploy --context stack=eks-cluster
+      - name: Deploy CDK stack
+        run: cdk deploy --require-approval never
 

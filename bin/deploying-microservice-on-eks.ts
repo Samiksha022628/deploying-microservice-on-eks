@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { IamAndVpcStack } from '../lib/IamAndVpc-stack';
-import { EksClusterStack } from '../lib/EksCluster-stack';
+import { DeployingMicoserviceOnEksStack } from '../lib/deploying-microservice-on-eks';
 
 const app = new cdk.App();
-new IamAndVpcStack(app, 'IamAndVpcStack', {
+new DeployingMicoserviceOnEksStack(app, 'DeployingMicoserviceOnEksStack',{ 
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -19,5 +18,3 @@ new IamAndVpcStack(app, 'IamAndVpcStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
-new EksClusterStack(app, 'EksClusterStack', {
-   env: { account: '654654582602', region: 'us-east-1' },});
