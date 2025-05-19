@@ -45,7 +45,7 @@ jobs:
 
       - name: Apply namespace manifest
         run: |
-          kubectl apply -f manifests/namespace.yaml
+          kubectl apply -f manifests/namespace.yaml --validate=false
 
       - name: Deploy CDK Stack
         run: cdk deploy --require-approval never
