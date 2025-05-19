@@ -35,8 +35,8 @@ jobs:
 
       - name: Replace placeholders in Secret manifest
         run: |
-          sed -e "s/PLACEHOLDER_AWS_ACCESS_KEY_ID/${{ secrets.AWS_ACCESS_KEY_ID }}/" \
-              -e "s/PLACEHOLDER_AWS_SECRET_ACCESS_KEY/${{ secrets.AWS_SECRET_ACCESS_KEY }}/" \
+          sed -e "s|PLACEHOLDER_AWS_ACCESS_KEY_ID|${{ secrets.AWS_ACCESS_KEY_ID }}|" \
+              -e "s|PLACEHOLDER_AWS_SECRET_ACCESS_KEY|${{ secrets.AWS_SECRET_ACCESS_KEY }}|" \
               manifests/configMap-secret.yaml      
 
       - name: Deploy CDK Stack
