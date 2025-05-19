@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as eks from 'aws-cdk-lib/aws-eks';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
@@ -8,6 +9,10 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export class DeployingMicoserviceOnEksStack extends cdk.Stack{
   constructor(scope:Construct, id:string, props?:cdk.StackProps) {super(scope,id,props);
+
+    const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
+      assumedBy: new iam.AccountRootPrincipal(),
+    });
 
    const vpc=new ec2.Vpc(this,'vpc',{
       natGateways: 1,
@@ -24,6 +29,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           version: eks.KubernetesVersion.V1_28,
           kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
           vpcSubnets:[{subnetType:ec2.SubnetType.PRIVATE_WITH_EGRESS}],
+          mastersRole:iamroleforcluster,
            })
         
         const manifestsDir='manifests';
@@ -35,5 +41,4 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
             .filter(Boolean)
         );
         cluster.addManifest('AppManifests', ...resources);
-       
-    }}
+       }}
