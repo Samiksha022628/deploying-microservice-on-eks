@@ -14,11 +14,11 @@ spec:
         app: deploying-microservice-app
     spec:
       containers: 
-        image: stacksimplify/kubenginx:2.0.0
-        ports:
-          containerPort: 80
-          name: http
-        resources:
-          requests: 
-            cpu: "0.5"
-    
+        - name: deploying-microservice-container
+          image: stacksimplify/kubenginx:2.0.0
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests: 
+              cpu: "0.5"
