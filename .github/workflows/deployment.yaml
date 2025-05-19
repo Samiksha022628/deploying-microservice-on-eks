@@ -33,10 +33,6 @@ jobs:
       - name: Bootstrap CDK
         run: cdk bootstrap
 
-      - name: Update kubeconfig for EKS Cluster
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name EksCluster
-
       - name: Replace placeholders in Secret manifest
         run: |
           sed -e "s/PLACEHOLDER_AWS_ACCESS_KEY_ID/${{ secrets.AWS_ACCESS_KEY_ID }}/" \
@@ -45,3 +41,7 @@ jobs:
 
       - name: Deploy CDK Stack
         run: cdk deploy --require-approval never
+
+      - name: Update kubeconfig for EKS Cluster
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name EksCluster
