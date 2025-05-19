@@ -39,6 +39,10 @@ jobs:
               -e "s|PLACEHOLDER_AWS_SECRET_ACCESS_KEY|${{ secrets.AWS_SECRET_ACCESS_KEY }}|" \
               manifests/configMap-secret.yaml      
 
+      - name: Apply namespace manifest
+        run: |
+          kubectl apply -f manifests/namespace.yaml
+
       - name: Deploy CDK Stack
         run: cdk deploy --require-approval never
 
