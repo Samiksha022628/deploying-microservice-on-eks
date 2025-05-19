@@ -43,6 +43,9 @@ jobs:
         run: |
           aws eks update-kubeconfig --region us-east-1 --name EksCluster  
 
+      - name: Test kubectl authentication
+        run: kubectl get nodes
+
       - name: Apply namespace manifest
         run: |
           kubectl apply -f manifests/namespace.yaml --validate=false
