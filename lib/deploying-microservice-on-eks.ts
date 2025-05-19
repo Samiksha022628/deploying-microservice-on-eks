@@ -18,7 +18,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     });
 
     const cluster=new eks.Cluster(this, 'EksCluster', 
-        {
+        {clusterName: 'EksCluster',
           vpc,
           defaultCapacity:2,
           version: eks.KubernetesVersion.V1_28,
