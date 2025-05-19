@@ -25,6 +25,8 @@
     "@aws-cdk/aws-iam": "^1.203.0",
     "@aws-cdk/lambda-layer-kubectl-v28": "^2.2.1",
     "aws-cdk-lib": "2.190.0",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "fs": "^0.0.1-security",
+    "yaml": "^2.8.0"
   }
 }

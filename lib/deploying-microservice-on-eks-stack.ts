@@ -3,6 +3,8 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as eks from 'aws-cdk-lib/aws-eks';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as fs from 'fs';
+import * as yaml from 'yaml';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 
 export class DeployingMicroserviceOnEksStack extends cdk.Stack{
@@ -33,9 +35,15 @@ export class DeployingMicroserviceOnEksStack extends cdk.Stack{
       cluster.awsAuth.addRoleMapping(iamRoleForCluster, {
         groups: ['system:masters']
       })
-      
+    
+    const manifestsDir='manifests';
+    const files =['namespace.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml'];
+
+    const resources = files.flatMap(file => yaml
+        .parseAllDocuments(fs.readFileSync(`${manifestsDir}/${file}`, 'utf-8'))
+        .map(doc => doc.toJSON())
+        .filter(Boolean)
+    );
+    cluster.addManifest('AppManifests', ...resources);
    
   }}
-
-
-
