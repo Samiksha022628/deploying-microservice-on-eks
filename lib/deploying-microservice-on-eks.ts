@@ -12,21 +12,13 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
    const vpc=new ec2.Vpc(this,'vpc',{
       natGateways: 1,
       subnetConfiguration: [
-        {
-          name: 'PrivateSubnet',
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-          cidrMask: 24,
-        },
-        {
-          name: 'PublicSubnet',
-          subnetType: ec2.SubnetType.PUBLIC,
-          cidrMask: 24,
-        },
+        {name: 'PrivateSubnet', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24,},
+        {name: 'PublicSubnet', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24,},
       ],
     });
 
-    const cluster=new eks.Cluster(this, 'EksCluster', {
-          clusterName: 'EksCluster',
+    const cluster=new eks.Cluster(this, 'EksCluster', 
+        {
           vpc,
           defaultCapacity:2,
           version: eks.KubernetesVersion.V1_28,
