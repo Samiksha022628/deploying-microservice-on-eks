@@ -39,10 +39,10 @@ jobs:
               -e "s|PLACEHOLDER_AWS_SECRET_ACCESS_KEY|${{ secrets.AWS_SECRET_ACCESS_KEY }}|" \
               manifests/configMap-secret.yaml    
 
+      - name: Deploy CDK stack
+        run: cdk deploy --require-approval never
+
       - name: Update kubeconfig for EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name EksCluster  
-
-      - name: Deploy CDK stack
-        run: cdk deploy --require-approval never
 
