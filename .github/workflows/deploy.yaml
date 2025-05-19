@@ -31,7 +31,7 @@ jobs:
         run: npm install 
 
       - name: Bootstrap CDK
-        run: cdk bootstrap
+        run: cdk bootstrap aws://654654582602/us-east-1
 
       - name: Replace placeholders in Secret manifest
         run: |
