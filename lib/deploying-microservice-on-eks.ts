@@ -36,4 +36,4 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         );
         cluster.addManifest('AppManifests', ...resources);
        
-      }}
+    }}
