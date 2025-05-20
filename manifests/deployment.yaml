@@ -13,6 +13,7 @@ spec:
       labels:
         run: php-apache
     spec:
+      serviceAccountName: app-service-account
       volumes:
       - name: config-volume
         configMap:
