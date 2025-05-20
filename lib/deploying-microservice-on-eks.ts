@@ -31,6 +31,17 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           vpcSubnets:[{subnetType:ec2.SubnetType.PRIVATE_WITH_EGRESS}],
           mastersRole:iamroleforcluster,
            })
+
+      cluster.addHelmChart('MetricsServer', {
+        chart: 'metrics-server',
+        repository: 'https://kubernetes-sigs.github.io/metrics-server/',
+        release: 'metrics-server',
+        namespace: 'kube-system',
+        version: '5.13.1', 
+        values: {args: [
+        '--kubelet-insecure-tls',
+        '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
+      });
         
         const manifestsDir='manifests';
         const files =['namespace.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml'];

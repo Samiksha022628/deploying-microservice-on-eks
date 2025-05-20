@@ -13,8 +13,15 @@ spec:
       labels:
         app: deploying-microservice-app
     spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: deploying-microservice-configmap
+      - name: secret-volume
+        secret:
+          secretName: deploying-microservice-secrets
       containers: 
-        - name: deploying-microservice-container
+        - name: deploying-microservice-app
           image: stacksimplify/kubenginx:2.0.0
           ports:
             - containerPort: 80
@@ -27,3 +34,9 @@ spec:
                 name: deploying-microservice-configmap
             - secretRef:
                 name: deploying-microservice-secrets
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: secret-volume
+              mountPath: /etc/secret
+            
