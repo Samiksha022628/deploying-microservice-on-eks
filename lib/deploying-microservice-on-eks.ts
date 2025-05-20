@@ -37,7 +37,6 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         repository: 'https://kubernetes-sigs.github.io/metrics-server/',
         release: 'metrics-server',
         namespace: 'kube-system',
-        version: '5.13.1', 
         values: {args: [
         '--kubelet-insecure-tls',
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
