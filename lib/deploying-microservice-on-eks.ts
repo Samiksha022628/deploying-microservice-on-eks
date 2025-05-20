@@ -13,7 +13,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
       assumedBy: new iam.AccountRootPrincipal(),
     });
-
+    
    const vpc=new ec2.Vpc(this,'vpc',{
       natGateways: 1,
       subnetConfiguration: [
