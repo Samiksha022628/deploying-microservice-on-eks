@@ -7,11 +7,11 @@ spec:
   replicas: 3
   selector:
     matchLabels: 
-      app: deploying-microservice-app
+      app: php-apache
   template:
     metadata:
       labels:
-        app: deploying-microservice-app
+        app: php-apache
     spec:
       volumes:
       - name: config-volume
@@ -21,8 +21,8 @@ spec:
         secret:
           secretName: deploying-microservice-secrets
       containers: 
-        - name: deploying-microservice-app
-          image: stacksimplify/kubenginx:2.0.0
+        - name: php-apache
+          image: registry.k8s.io/hpa-example
           ports:
             - containerPort: 80
               name: http
@@ -39,4 +39,18 @@ spec:
               mountPath: /etc/config
             - name: secret-volume
               mountPath: /etc/secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  namespace: deploying-microservice-namespace
+  labels:
+    run: php-apache
+spec:
+  ports:
+  - port: 80
+  selector:
+    run: php-apache
             
