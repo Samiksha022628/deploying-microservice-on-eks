@@ -31,6 +31,10 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           mastersRole:iamroleforcluster,
            })
       
+      cluster.awsAuth.addRoleMapping(iamroleforcluster, {
+        groups: ['system:masters']
+      })
+      
       const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
         desiredSize:2,
         instanceTypes: [new ec2.InstanceType('t3.medium')],
