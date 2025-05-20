@@ -4,7 +4,7 @@ metadata:
   name: deploying-microservice
   namespace: deploying-microservice-namespace
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels: 
       run: php-apache
@@ -53,4 +53,5 @@ spec:
   - port: 80
   selector:
     run: php-apache
+
             
