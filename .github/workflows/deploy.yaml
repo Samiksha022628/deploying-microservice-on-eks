@@ -17,12 +17,23 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install jq and AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq awscli
+
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Make assume-role.sh executable
+        run: chmod +x scripts/assume-role.sh
+
+      - name: Assume AWS Role and export creds
+        run: scripts/assume-role.sh
 
       - name: Install AWS CDK CLI
         run: npm install -g aws-cdk

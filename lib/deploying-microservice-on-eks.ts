@@ -13,7 +13,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
       assumedBy: new iam.AccountRootPrincipal(),
     });
-    
+
    const vpc=new ec2.Vpc(this,'vpc',{
       natGateways: 1,
       subnetConfiguration: [
@@ -25,12 +25,21 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const cluster=new eks.Cluster(this, 'EksCluster', 
         {clusterName: 'EksCluster',
           vpc,
-          defaultCapacity:2,
           version: eks.KubernetesVersion.V1_28,
           kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
           vpcSubnets:[{subnetType:ec2.SubnetType.PRIVATE_WITH_EGRESS}],
           mastersRole:iamroleforcluster,
            })
+      
+      const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
+        desiredSize:2,
+        instanceTypes: [new ec2.InstanceType('t3.medium')],
+        remoteAccess: { sshKeyName: 'demo',
+        },
+      });
+
+      nodegroup.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName
+        ('AmazonSSMManagedInstanceCore'));
 
       cluster.addHelmChart('MetricsServer', {
         chart: 'metrics-server',
