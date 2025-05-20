@@ -17,10 +17,10 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install jq and AWS CLI
+      - name: Install jq
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq awscli
+          sudo apt-get install -y jq
 
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
