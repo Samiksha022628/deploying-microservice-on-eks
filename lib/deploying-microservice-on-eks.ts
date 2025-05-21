@@ -45,7 +45,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       cluster.awsAuth.addRoleMapping(nodegroup.role, {
         username: 'system:node:{{EC2PrivateDNSName}}',
         groups: ['system:bootstrappers', 'system:nodes', 'system:masters'],
-    });
+     });
 
       cluster.addHelmChart('MetricsServer', {
         chart: 'metrics-server',
