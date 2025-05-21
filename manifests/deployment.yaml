@@ -4,7 +4,6 @@ metadata:
   name: deploying-microservice
   namespace: deploying-microservice-namespace
 spec:
-  replicas: 3
   selector:
     matchLabels: 
       run: php-apache
