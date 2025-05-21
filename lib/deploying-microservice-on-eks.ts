@@ -24,6 +24,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
 
     const cluster=new eks.Cluster(this, 'EksCluster', 
         {clusterName: 'EksCluster',
+          defaultCapacity:0,
           vpc,
           version: eks.KubernetesVersion.V1_28,
           kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
@@ -31,7 +32,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           mastersRole:iamroleforcluster,
            })
             
-      const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
+        const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
         desiredSize:2,
         instanceTypes: [new ec2.InstanceType('t3.medium')],
         remoteAccess: { sshKeyName: 'demo',
@@ -57,7 +58,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       });
         
         const manifestsDir='manifests';
-        const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+        const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml'];
     
         const resources = files.flatMap(file => yaml
             .parseAllDocuments(fs.readFileSync(`${manifestsDir}/${file}`, 'utf-8'))
