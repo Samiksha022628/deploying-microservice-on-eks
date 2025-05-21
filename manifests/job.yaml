@@ -5,7 +5,6 @@ metadata:
   namespace: deploying-microservice-namespace
 spec:
   backoffLimit: 0
-  ttlSecondsAfterFinished: 60
   template:
     spec:
       containers:
@@ -13,5 +12,6 @@ spec:
           image: busybox:1.28
           command: ["/bin/sh", "-c"]
           args:
-            - while sleep 0.01; do wget -q -O- http://php-apache.deploying-microservice-namespace.svc.cluster.local; done
+            - |
+              timeout 200s sh -c 'while sleep 0.1; do wget -q -O- http://php-apache.deploying-microservice-namespace.svc.cluster.local; done'
       restartPolicy: Never
