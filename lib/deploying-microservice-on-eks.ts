@@ -57,7 +57,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       });
         
         const manifestsDir='manifests';
-        const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml'];
+        const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
     
         const resources = files.flatMap(file => yaml
             .parseAllDocuments(fs.readFileSync(`${manifestsDir}/${file}`, 'utf-8'))
