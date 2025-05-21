@@ -5,7 +5,7 @@ metadata:
   namespace: deploying-microservice-namespace
 spec:
   selector:
-    matchLabels: 
+    matchLabels:
       run: php-apache
   template:
     metadata:
@@ -14,21 +14,23 @@ spec:
     spec:
       serviceAccountName: app-service-account
       volumes:
-      - name: config-volume
-        configMap:
-          name: deploying-microservice-configmap
-      - name: secret-volume
-        secret:
-          secretName: deploying-microservice-secrets
-      containers: 
+        - name: config-volume
+          configMap:
+            name: deploying-microservice-configmap
+        - name: secret-volume
+          secret:
+            secretName: deploying-microservice-secrets
+      containers:
         - name: php-apache
           image: registry.k8s.io/hpa-example
           ports:
             - containerPort: 80
               name: http
           resources:
-            requests: 
-              cpu: "0.5"
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 200m
           envFrom:
             - configMapRef:
                 name: deploying-microservice-configmap
@@ -39,7 +41,6 @@ spec:
               mountPath: /etc/config
             - name: secret-volume
               mountPath: /etc/secret
-
 ---
 apiVersion: v1
 kind: Service
