@@ -14,5 +14,5 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              timeout 200s sh -c 'while sleep 0.1; do wget -q -O- http://php-apache.deploying-microservice-namespace.svc.cluster.local; done'
+               sh -c 'while sleep 0.1; do wget -q -O- http://php-apache.deploying-microservice-namespace.svc.cluster.local; done'
       restartPolicy: Never
