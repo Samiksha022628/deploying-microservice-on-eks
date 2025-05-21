@@ -31,7 +31,6 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           mastersRole:iamroleforcluster,
            })
             
-           
       const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
         desiredSize:2,
         instanceTypes: [new ec2.InstanceType('t3.medium')],
