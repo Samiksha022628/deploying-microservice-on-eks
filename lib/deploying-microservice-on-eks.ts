@@ -42,9 +42,9 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       nodegroup.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName
         ('AmazonSSMManagedInstanceCore'));
       
-    cluster.awsAuth.addRoleMapping(nodegroup.role, {
-      username: 'system:node:{{EC2PrivateDNSName}}',
-      groups: ['system:bootstrappers', 'system:nodes', 'system:masters'],
+      cluster.awsAuth.addRoleMapping(nodegroup.role, {
+        username: 'system:node:{{EC2PrivateDNSName}}',
+        groups: ['system:bootstrappers', 'system:nodes', 'system:masters'],
     });
 
       cluster.addHelmChart('MetricsServer', {
