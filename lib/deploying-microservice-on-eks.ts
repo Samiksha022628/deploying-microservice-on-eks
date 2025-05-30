@@ -61,7 +61,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       });
 
       const manifestsDir='manifests';
-      const files =['rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+      const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
 
  for (const envName of Object.keys(envconfigs)) {
       const config = envconfigs[envName];
@@ -82,16 +82,26 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       return content;
     };
 
-    const namespaceYaml = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, 'namespace.yaml'), 'utf8'));
-    const namespaceResources = yaml.parseAllDocuments(namespaceYaml).map(doc => doc.toJSON()).filter(Boolean);
-    const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`, ...namespaceResources);
+      const allResources = files.flatMap((file) => {
+        const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8')
+        );
+        return yaml.parseAllDocuments(content).map((doc) => doc.toJSON()).filter(Boolean);
+      });
 
-    const otherResources = files.flatMap(file => {
-      const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8'));
-      return yaml.parseAllDocuments(content).map(doc => doc.toJSON()).filter(Boolean);
-    });
+      const namespaceResources = allResources.filter(
+        (res) => res.kind === 'Namespace');
 
-    const appManifest = cluster.addManifest(`AppManifests-${envName}`, ...otherResources);
-    appManifest.node.addDependency(namespaceManifest);
-  }
+      const otherResources = allResources.filter(
+        (res) => res.kind !== 'Namespace');
+
+      const namespaceManifest = cluster.addManifest(
+        `NamespaceManifest-${envName}`,
+        ...namespaceResources);
+
+      const appManifest = cluster.addManifest(
+        `AppManifests-${envName}`,
+        ...otherResources);
+
+      appManifest.node.addDependency(namespaceManifest);
+    }
   }}

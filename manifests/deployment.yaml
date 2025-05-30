@@ -7,11 +7,11 @@ spec:
   replicas: {{REPLICA_COUNT}}
   selector:
     matchLabels:
-      run: php-apache
+      run: nginx
   template:
     metadata:
       labels:
-        run: php-apache
+        run: nginx
     spec:
       serviceAccountName: app-service-account
       volumes:
@@ -22,8 +22,8 @@ spec:
           secret:
             secretName: deploying-microservice-secrets
       containers:
-        - name: php-apache
-          image: registry.k8s.io/hpa-example
+        - name: nginx
+          image: nginx:{{APP_VERSION}}
           ports:
             - containerPort: 80
               name: http
@@ -51,12 +51,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: php-apache
+  name: nginx
   namespace: {{ENV}}
   labels:
-    run: php-apache
+    run: nginx
 spec:
   ports:
     - port: 80
   selector:
-    run: php-apache
+    run: nginx
