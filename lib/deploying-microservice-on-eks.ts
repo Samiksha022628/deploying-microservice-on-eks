@@ -62,8 +62,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
       });
 
-        const manifestsDir='manifests';
-        const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+      const manifestsDir='manifests';
+      const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
 
         const placeholders: Record<string, string> = {
         '{{ENV}}': envName,
