@@ -11,9 +11,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 export class DeployingMicoserviceOnEksStack extends cdk.Stack{
   constructor(scope:Construct, id:string, props?:cdk.StackProps) {super(scope,id,props);
 
-    const envName = this.node.tryGetContext('env') || 'dev';
     const envconfigs = this.node.tryGetContext('envconfigs');
-    const config = envconfigs[envName];
 
     const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
       assumedBy: new iam.AccountRootPrincipal(),
@@ -63,9 +61,12 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       });
 
       const manifestsDir='manifests';
-      const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+      const files =['rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
 
-        const placeholders: Record<string, string> = {
+ for (const envName of Object.keys(envconfigs)) {
+      const config = envconfigs[envName];
+
+      const placeholders: Record<string, string> = {
         '{{ENV}}': envName,
         '{{APP_VERSION}}': config.appVersion || '1.0.0',
         '{{REPLICA_COUNT}}': (config.replicaCount || 1).toString(),
@@ -74,18 +75,23 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '{{FEATURE_FLAG}}': config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
       };
     
-        const resources = files.flatMap(file => {
-          const filePath = path.join(manifestsDir, file);
-          let content = fs.readFileSync(filePath, 'utf8');
+    const replacePlaceholders = (content: string) => {
+      for (const [key, value] of Object.entries(placeholders)) {
+        content = content.replace(new RegExp(key, 'g'), value);
+      }
+      return content;
+    };
 
-        for (const [key, value] of Object.entries(placeholders)) {
-          const regex = new RegExp(key, 'g');
-          content = content.replace(regex, value);
-        }
-        return yaml
-          .parseAllDocuments(content)
-          .map(doc => doc.toJSON())
-          .filter(Boolean);
-      });
-        cluster.addManifest('AppManifests', ...resources);
-       }}
+    const namespaceYaml = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, 'namespace.yaml'), 'utf8'));
+    const namespaceResources = yaml.parseAllDocuments(namespaceYaml).map(doc => doc.toJSON()).filter(Boolean);
+    const namespaceManifest = cluster.addManifest('NamespaceManifest-${envName}', ...namespaceResources);
+
+    const otherResources = files.flatMap(file => {
+      const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8'));
+      return yaml.parseAllDocuments(content).map(doc => doc.toJSON()).filter(Boolean);
+    });
+
+    const appManifest = cluster.addManifest('AppManifests-${envName}', ...otherResources);
+    appManifest.node.addDependency(namespaceManifest);
+  }
+  }}
