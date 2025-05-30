@@ -23,7 +23,7 @@ spec:
             secretName: deploying-microservice-secrets
       containers:
         - name: php-apache
-          image: registry.k8s.io/hpa-example:{{APP_VERSION}}
+          image: registry.k8s.io/hpa-example
           ports:
             - containerPort: 80
               name: http
