@@ -4,11 +4,16 @@ import * as eks from 'aws-cdk-lib/aws-eks';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
+import * as path from 'path';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export class DeployingMicoserviceOnEksStack extends cdk.Stack{
   constructor(scope:Construct, id:string, props?:cdk.StackProps) {super(scope,id,props);
+
+    const envName = this.node.tryGetContext('env') || 'dev';
+    const envconfigs = this.node.tryGetContext('envconfigs');
+    const config = envconfigs[envName];
 
     const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
       assumedBy: new iam.AccountRootPrincipal(),
@@ -56,14 +61,31 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '--kubelet-insecure-tls',
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
       });
-        
+
         const manifestsDir='manifests';
         const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+
+        const placeholders: Record<string, string> = {
+        '{{ENV}}': envName,
+        '{{APP_VERSION}}': config.appVersion || '1.0.0',
+        '{{REPLICA_COUNT}}': (config.replicaCount || 1).toString(),
+        '{{REQUEST_CPU}}': config.requestCpu || '100m',
+        '{{LIMIT_CPU}}': config.limitCpu || '200m',
+        '{{FEATURE_FLAG}}': config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
+      };
     
-        const resources = files.flatMap(file => yaml
-            .parseAllDocuments(fs.readFileSync(`${manifestsDir}/${file}`, 'utf-8'))
-            .map(doc => doc.toJSON())
-            .filter(Boolean)
-        );
+        const resources = files.flatMap(file => {
+          const filePath = path.join(manifestsDir, file);
+          let content = fs.readFileSync(filePath, 'utf8');
+
+        for (const [key, value] of Object.entries(placeholders)) {
+          const regex = new RegExp(key, 'g');
+          content = content.replace(regex, value);
+        }
+        return yaml
+          .parseAllDocuments(content)
+          .map(doc => doc.toJSON())
+          .filter(Boolean);
+      });
         cluster.addManifest('AppManifests', ...resources);
        }}

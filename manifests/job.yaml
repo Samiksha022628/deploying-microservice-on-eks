@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: load-generator
-  namespace: deploying-microservice-namespace
+  namespace: {{ENV}}
 spec:
   backoffLimit: 0
   template:
@@ -13,5 +13,5 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              sh -c 'while sleep 0.1; do wget -q -O- http://php-apache.deploying-microservice-namespace.svc.cluster.local; done'
+              sh -c 'while sleep 0.1; do wget -q -O- http://php-apache.{{ENV}}.svc.cluster.local; done'
       restartPolicy: Never

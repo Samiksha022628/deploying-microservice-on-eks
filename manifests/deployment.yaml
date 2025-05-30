@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: deploying-microservice
-  namespace: deploying-microservice-namespace
+  namespace: {{ENV}}
 spec:
+  replicas: {{REPLICA_COUNT}}
   selector:
     matchLabels:
       run: php-apache
@@ -22,15 +23,20 @@ spec:
             secretName: deploying-microservice-secrets
       containers:
         - name: php-apache
-          image: registry.k8s.io/hpa-example
+          image: registry.k8s.io/hpa-example:{{APP_VERSION}}
           ports:
             - containerPort: 80
               name: http
           resources:
             requests:
-              cpu: 100m
+              cpu: {{REQUEST_CPU}}
             limits:
-              cpu: 200m
+              cpu: {{LIMIT_CPU}}
+          env:
+            - name: ENV
+              value: "{{ENV}}"
+            - name: FEATURE_FLAG
+              value: "{{FEATURE_FLAG}}"
           envFrom:
             - configMapRef:
                 name: deploying-microservice-configmap
@@ -46,13 +52,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: php-apache
-  namespace: deploying-microservice-namespace
+  namespace: {{ENV}}
   labels:
     run: php-apache
 spec:
   ports:
-  - port: 80
+    - port: 80
   selector:
     run: php-apache
-
-            
