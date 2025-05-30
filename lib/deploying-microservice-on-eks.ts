@@ -84,14 +84,14 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
 
     const namespaceYaml = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, 'namespace.yaml'), 'utf8'));
     const namespaceResources = yaml.parseAllDocuments(namespaceYaml).map(doc => doc.toJSON()).filter(Boolean);
-    const namespaceManifest = cluster.addManifest('NamespaceManifest-${envName}', ...namespaceResources);
+    const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`, ...namespaceResources);
 
     const otherResources = files.flatMap(file => {
       const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8'));
       return yaml.parseAllDocuments(content).map(doc => doc.toJSON()).filter(Boolean);
     });
 
-    const appManifest = cluster.addManifest('AppManifests-${envName}', ...otherResources);
+    const appManifest = cluster.addManifest(`AppManifests-${envName}`, ...otherResources);
     appManifest.node.addDependency(namespaceManifest);
   }
   }}
