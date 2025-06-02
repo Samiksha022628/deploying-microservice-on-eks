@@ -69,8 +69,10 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const fluentBitSaRole = new iam.Role(this, 'FluentBitIRSA', {
       assumedBy: new iam.WebIdentityPrincipal(
         cluster.openIdConnectProvider.openIdConnectProviderArn,
-        {
-          [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]: 'system:serviceaccount:amazon-cloudwatch:fluent-bit',
+        { 
+          StringEquals: {
+            [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]: 'system:serviceaccount:amazon-cloudwatch:fluent-bit',
+         },
         }
       ),
     });
