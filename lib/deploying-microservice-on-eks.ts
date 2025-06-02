@@ -75,12 +75,12 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '{{FEATURE_FLAG}}': config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
       };
     
-    const replacePlaceholders = (content: string) => {
-      for (const [key, value] of Object.entries(placeholders)) {
-        content = content.replace(new RegExp(key, 'g'), value);
-      }
-      return content;
-    };
+      const replacePlaceholders = (content: string) => {
+        for (const [key, value] of Object.entries(placeholders)) {
+          content = content.replace(new RegExp(key, 'g'), value);
+        }
+          return content;
+       };
 
       const allResources = files.flatMap((file) => {
         const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8')
@@ -89,11 +89,9 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       });
 
       const namespaceResources = allResources.filter((res) => res.kind === 'Namespace');
-
       const otherResources = allResources.filter((res) => res.kind !== 'Namespace');
 
       const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`,...namespaceResources);
-
       const appManifest = cluster.addManifest(`AppManifests-${envName}`,...otherResources);
 
       appManifest.node.addDependency(namespaceManifest);
