@@ -12,6 +12,5 @@ spec:
           image: busybox:1.28
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              sh -c 'while sleep 0.1; do wget -q -O- http://nginx-svc.{{ENV}}.svc.cluster.local; done'
+            - "while true; do wget -q -O- http://php-apache.{{ENV}}.svc.cluster.local; sleep 0.1; done"
       restartPolicy: Never

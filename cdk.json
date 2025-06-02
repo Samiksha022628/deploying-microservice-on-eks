@@ -91,21 +91,21 @@
     "@aws-cdk/aws-stepfunctions:useDistributedMapResultWriterV2": true,
     "envconfigs":{
       "dev": {
-      "appVersion": "1.25.2-alpine",
+      "appVersion": "8.2",
       "replicaCount": 1,
       "requestCpu": "100m",
       "limitCpu": "200m",
       "featureFlag": true
     },
     "stage": {
-      "appVersion": "1.24.0",
+      "appVersion": "8.1",
       "replicaCount": 2,
       "requestCpu": "150m",
       "limitCpu": "300m",
       "featureFlag": false
     },
     "prod": {
-      "appVersion": "1.23.4",
+      "appVersion": "8.0",
       "replicaCount": 3,
       "requestCpu": "200m",
       "limitCpu": "400m",

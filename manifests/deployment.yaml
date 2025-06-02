@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deploying-microservice
+  name: deploying-php-microservice
   namespace: {{ENV}}
 spec:
   replicas: {{REPLICA_COUNT}}
   selector:
     matchLabels:
-      run: nginx
+      run: php-apache
   template:
     metadata:
       labels:
-        run: nginx
+        run: php-apache
     spec:
       serviceAccountName: app-service-account
       volumes:
@@ -22,8 +22,8 @@ spec:
           secret:
             secretName: deploying-microservice-secrets
       containers:
-        - name: nginx
-          image: nginx:{{APP_VERSION}}
+        - name: php-apache
+          image: php:{{APP_VERSION}}-apache
           ports:
             - containerPort: 80
               name: http
@@ -51,12 +51,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: php-apache
   namespace: {{ENV}}
   labels:
-    run: nginx
+    run: php-apache
 spec:
   ports:
     - port: 80
   selector:
-    run: nginx
+    run: php-apache
