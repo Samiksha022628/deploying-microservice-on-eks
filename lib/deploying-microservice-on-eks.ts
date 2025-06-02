@@ -60,6 +60,32 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
       });
 
+    const namespaceManifestPath = path.join(__dirname, 'manifests', 'namespace-cloudwatch.yaml');
+    const namespaceManifestContent = fs.readFileSync(namespaceManifestPath, 'utf8');
+    const namespaceDocs = yaml.parseAllDocuments(namespaceManifestContent);
+    const namespaceResources = namespaceDocs.map(doc => doc.toJSON()).filter(Boolean);
+    const cloudwatchNamespace = cluster.addManifest('CloudWatchNamespace', ...namespaceResources);
+
+    const fluentBitSaRole = new iam.Role(this, 'FluentBitIRSA', {
+      assumedBy: new iam.WebIdentityPrincipal(
+        cluster.openIdConnectProvider.openIdConnectProviderArn,
+        {
+          [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]: 'system:serviceaccount:amazon-cloudwatch:fluent-bit',
+        }
+      ),
+    });
+
+    fluentBitSaRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams",
+      ],
+      resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/eks/*`],
+    }));
+
       const manifestsDir='manifests';
       const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
 
@@ -95,5 +121,34 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       const appManifest = cluster.addManifest(`AppManifests-${envName}`,...otherResources);
 
       appManifest.node.addDependency(namespaceManifest);
+
+      const fluentBit = cluster.addHelmChart(`FluentBit-${envName}`, {
+        chart: 'aws-for-fluent-bit',
+        repository: 'https://aws.github.io/eks-charts',
+        release: `fluent-bit-${envName}`,
+        namespace: 'amazon-cloudwatch',
+        createNamespace: false,
+        values: {
+          serviceAccount: {
+            create: false,
+            name: 'fluent-bit',
+            annotations: {
+              'eks.amazonaws.com/role-arn': fluentBitSaRole.roleArn,
+            },
+          },
+          cloudWatch: {
+            enabled: true,
+            logGroupName: `/eks/${envName}/app-logs`,
+            region: this.region,
+            autoCreateGroup: true,
+          },
+          tolerations: [{
+            key: 'node-role.kubernetes.io/control-plane',
+            effect: 'NoSchedule',
+          }],
+        },
+      });
+
+      fluentBit.node.addDependency(cloudwatchNamespace);
     }
   }}
