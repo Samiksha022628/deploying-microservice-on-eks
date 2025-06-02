@@ -152,3 +152,4 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       fluentBit.node.addDependency(cloudwatchNamespace);
     }
   }}
+
