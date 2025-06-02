@@ -60,7 +60,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
       });
 
-    const namespaceManifestPath = path.join(__dirname, '. .' 'manifests', 'namespace-cloudwatch.yaml');
+    const namespaceManifestPath = path.join(__dirname, '..', 'manifests', 'namespace-cloudwatch.yaml');
     const namespaceManifestContent = fs.readFileSync(namespaceManifestPath, 'utf8');
     const namespaceDocs = yaml.parseAllDocuments(namespaceManifestContent);
     const namespaceResources = namespaceDocs.map(doc => doc.toJSON()).filter(Boolean);
