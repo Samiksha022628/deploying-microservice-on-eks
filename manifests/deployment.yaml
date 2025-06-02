@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deploying-php-microservice
+  name: deploying-microservice
   namespace: {{ENV}}
 spec:
   replicas: {{REPLICA_COUNT}}
@@ -47,6 +47,9 @@ spec:
               mountPath: /etc/config
             - name: secret-volume
               mountPath: /etc/secret
+            - name: config-volume
+              mountPath: /var/www/html/index.php
+              subPath: index.php
 ---
 apiVersion: v1
 kind: Service

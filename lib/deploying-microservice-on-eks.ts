@@ -88,19 +88,13 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         return yaml.parseAllDocuments(content).map((doc) => doc.toJSON()).filter(Boolean);
       });
 
-      const namespaceResources = allResources.filter(
-        (res) => res.kind === 'Namespace');
+      const namespaceResources = allResources.filter((res) => res.kind === 'Namespace');
 
-      const otherResources = allResources.filter(
-        (res) => res.kind !== 'Namespace');
+      const otherResources = allResources.filter((res) => res.kind !== 'Namespace');
 
-      const namespaceManifest = cluster.addManifest(
-        `NamespaceManifest-${envName}`,
-        ...namespaceResources);
+      const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`,...namespaceResources);
 
-      const appManifest = cluster.addManifest(
-        `AppManifests-${envName}`,
-        ...otherResources);
+      const appManifest = cluster.addManifest(`AppManifests-${envName}`,...otherResources);
 
       appManifest.node.addDependency(namespaceManifest);
     }
