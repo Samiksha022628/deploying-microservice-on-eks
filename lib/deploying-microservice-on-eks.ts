@@ -66,16 +66,23 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const namespaceResources = namespaceDocs.map(doc => doc.toJSON()).filter(Boolean);
     const cloudwatchNamespace = cluster.addManifest('CloudWatchNamespace', ...namespaceResources);
 
-    const fluentBitSaRole = new iam.Role(this, 'FluentBitIRSA', {
-      assumedBy: new iam.WebIdentityPrincipal(
-        cluster.openIdConnectProvider.openIdConnectProviderArn,
-        { 
-          StringEquals: {
-            [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]: 'system:serviceaccount:amazon-cloudwatch:fluent-bit',
-         },
-        }
-      ),
+    
+    const conditionJson = new cdk.CfnJson(this, 'OIDCCondition', {
+      value: {
+        [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]:
+           'system:serviceaccount:amazon-cloudwatch:fluent-bit',
+        },
     });
+
+    const fluentBitSaRole = new iam.Role(this, 'FluentBitIRSA', {
+       assumedBy: new iam.WebIdentityPrincipal(
+         cluster.openIdConnectProvider.openIdConnectProviderArn,
+          {
+            StringEquals: conditionJson,
+          }
+        ),
+    });
+
 
     fluentBitSaRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
