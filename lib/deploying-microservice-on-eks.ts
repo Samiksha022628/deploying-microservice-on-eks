@@ -74,6 +74,13 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       },
     });
 
+    const namespaceManifestPath = path.join(__dirname, '..', 'manifests', 'namespace-cloudwatch.yaml');
+    const namespaceManifestContent = fs.readFileSync(namespaceManifestPath, 'utf8');
+    const namespaceDocs = yaml.parseAllDocuments(namespaceManifestContent);
+    const namespaceResources = namespaceDocs.map((doc) => doc.toJSON()).filter(Boolean);
+
+    const cloudwatchNamespace = cluster.addManifest('CloudWatchNamespace', ...namespaceResources);
+
     const conditionJson = new cdk.CfnJson(this, 'OIDCCondition', {
       value: {
         [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]:
@@ -159,9 +166,9 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         repository: 'https://aws.github.io/eks-charts',
         release: `fluent-bit-${envName}`,
         namespace: 'amazon-cloudwatch',
-        createNamespace: false,
+        createNamespace: false,  
         values: {
-          ...values, // Inject parsed values.yaml content
+          ...values, 
           serviceAccount: {
             name: 'fluent-bit',
             annotations: {
@@ -171,7 +178,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         },
       });
 
-      fluentBit.node.addDependency(namespaceManifest);
+      fluentBit.node.addDependency(cloudwatchNamespace);
       if (previousHelmChart) {
         fluentBit.node.addDependency(previousHelmChart);
       }
