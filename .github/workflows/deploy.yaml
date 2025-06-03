@@ -37,5 +37,6 @@ jobs:
         run: cdk synth
 
       - name: Deploy CDK stack
-        run: cdk deploy --require-approval never
+        run: cdk deploy --concurrency 1 --require-approval never
+
 
