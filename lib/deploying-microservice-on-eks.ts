@@ -170,7 +170,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         values: {
           ...values, 
           serviceAccount: {
-            name: 'fluent-bit',
+            create: true,
+            name: 'fluent-bit-${envName}',
             annotations: {
               'eks.amazonaws.com/role-arn': fluentBitSaRole.roleArn,
             },

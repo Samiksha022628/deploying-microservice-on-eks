@@ -1,6 +1,6 @@
 serviceAccount:
-  create: false
-  name: fluent-bit
+  create: true
+  name: fluent-bit-${ENV}
   annotations: {} 
 
 cloudWatch:
