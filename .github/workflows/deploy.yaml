@@ -37,7 +37,7 @@ jobs:
         run: cdk synth
 
       - name: Deploy CDK stack
-        run: cdk deploy --context envconfigs='{"dev": {...}, "stage": {...}, "prod": {...}}' --concurrency 1 --require-approval never
+        run: cdk deploy --concurrency 1 --require-approval never
 
 
 
