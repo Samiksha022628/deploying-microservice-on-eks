@@ -8,8 +8,9 @@ import * as path from 'path';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-export class DeployingMicoserviceOnEksStack extends cdk.Stack{
-  constructor(scope:Construct, id:string, props?:cdk.StackProps) {super(scope,id,props);
+export class DeployingMicoserviceOnEksStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
 
     const envconfigs = this.node.tryGetContext('envconfigs');
 
@@ -17,53 +18,63 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       assumedBy: new iam.AccountRootPrincipal(),
     });
 
-   const vpc=new ec2.Vpc(this,'vpc',{
+    const vpc = new ec2.Vpc(this, 'vpc', {
       natGateways: 1,
       subnetConfiguration: [
-        {name: 'PrivateSubnet', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24,},
-        {name: 'PublicSubnet', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24,},
+        { name: 'PrivateSubnet', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24 },
+        { name: 'PublicSubnet', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
       ],
     });
 
-    const cluster=new eks.Cluster(this, 'EksCluster', 
-        {clusterName: 'EksCluster',
-          defaultCapacity:0,
-          vpc,
-          version: eks.KubernetesVersion.V1_28,
-          kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
-          vpcSubnets:[{subnetType:ec2.SubnetType.PRIVATE_WITH_EGRESS}],
-          mastersRole:iamroleforcluster,
-           })
-            
-        const nodegroup=cluster.addNodegroupCapacity('NodeGroup',{
-        desiredSize:2,
-        instanceTypes: [new ec2.InstanceType('t3.medium')],
-        remoteAccess: { sshKeyName: 'demo',
-        },
-      });
+    const cluster = new eks.Cluster(this, 'EksCluster', {
+      clusterName: 'EksCluster',
+      defaultCapacity: 0,
+      vpc,
+      version: eks.KubernetesVersion.V1_28,
+      kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
+      vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }],
+      mastersRole: iamroleforcluster,
+    });
 
-      nodegroup.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName
-        ('AmazonSSMManagedInstanceCore'));
-      
-      cluster.awsAuth.addRoleMapping(nodegroup.role, {
-        username: 'system:node:{{EC2PrivateDNSName}}',
-        groups: ['system:bootstrappers', 'system:nodes', 'system:masters'],
-     });
+    const nodegroup = cluster.addNodegroupCapacity('NodeGroup', {
+      desiredSize: 2,
+      instanceTypes: [new ec2.InstanceType('t3.medium')],
+      remoteAccess: {
+        sshKeyName: 'demo',
+      },
+    });
 
-      cluster.addHelmChart('MetricsServer', {
-        chart: 'metrics-server',
-        repository: 'https://kubernetes-sigs.github.io/metrics-server/',
-        release: 'metrics-server',
-        namespace: 'kube-system',
-        values: {args: [
-        '--kubelet-insecure-tls',
-        '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
-      });
+    nodegroup.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
 
-      const manifestsDir='manifests';
-      const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
+    cluster.awsAuth.addRoleMapping(nodegroup.role, {
+      username: 'system:node:{{EC2PrivateDNSName}}',
+      groups: ['system:bootstrappers', 'system:nodes', 'system:masters'],
+    });
 
- for (const envName of Object.keys(envconfigs)) {
+    cluster.addHelmChart('MetricsServer', {
+      chart: 'metrics-server',
+      repository: 'https://kubernetes-sigs.github.io/metrics-server/',
+      release: 'metrics-server',
+      namespace: 'kube-system',
+      values: {
+        args: [
+          '--kubelet-insecure-tls',
+          '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',
+        ],
+      },
+    });
+
+    const manifestsDir = 'manifests';
+    const files = [
+      'namespace.yaml',
+      'rolebinding.yaml',
+      'configMap-secret.yaml',
+      'deployment.yaml',
+      'HPA.yaml',
+      'job.yaml',
+    ];
+
+    for (const envName of Object.keys(envconfigs)) {
       const config = envconfigs[envName];
 
       const placeholders: Record<string, string> = {
@@ -74,26 +85,28 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '{{LIMIT_CPU}}': config.limitCpu || '200m',
         '{{FEATURE_FLAG}}': config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
       };
-    
+
       const replacePlaceholders = (content: string) => {
         for (const [key, value] of Object.entries(placeholders)) {
           content = content.replace(new RegExp(key, 'g'), value);
         }
-          return content;
-       };
+        return content;
+      };
 
       const allResources = files.flatMap((file) => {
-        const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8')
-        );
-        return yaml.parseAllDocuments(content).map((doc) => doc.toJSON()).filter(Boolean);
+        const content = replacePlaceholders(fs.readFileSync(path.join(manifestsDir, file), 'utf8'));
+        return yaml
+          .parseAllDocuments(content)
+          .map((doc) => doc.toJSON())
+          .filter(Boolean);
       });
 
-      const namespaceResources = allResources.filter((res) => res.kind === 'Namespace');
-      const otherResources = allResources.filter((res) => res.kind !== 'Namespace');
+      const sortedResources = allResources.sort((a, b) => {
+        if (a.kind === 'Namespace' && b.kind !== 'Namespace') return -1;
+        if (a.kind !== 'Namespace' && b.kind === 'Namespace') return 1;
+        return 0;
+      });
 
-      const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`,...namespaceResources);
-      const appManifest = cluster.addManifest(`AppManifests-${envName}`,...otherResources);
-
-      appManifest.node.addDependency(namespaceManifest);
+      cluster.addManifest(`AppManifests-${envName}`, ...sortedResources);
     }
   }}
