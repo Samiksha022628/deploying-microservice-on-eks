@@ -14,7 +14,7 @@ new DeployingMicoserviceOnEksStack(app, 'DeployingMicoserviceOnEksStack',{
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: { account: '730335498319', region: 'us-east-1' },
+  env: { account: '767397831600', region: 'us-east-1' },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
