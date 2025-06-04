@@ -10,8 +10,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export class DeployingMicoserviceOnEksStack extends cdk.Stack{
   constructor(scope:Construct, id:string, props?:cdk.StackProps) {super(scope,id,props);
-
-       
+     
     const envconfigs = this.node.tryGetContext('envconfigs');
 
     const iamroleforcluster = new iam.Role(this, 'EksAdminRole', {
@@ -21,16 +20,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const vpc = new ec2.Vpc(this, 'Vpc', {
       natGateways: 1,
       subnetConfiguration: [
-        {
-          name: 'PrivateSubnet',
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-          cidrMask: 24,
-        },
-        {
-          name: 'PublicSubnet',
-          subnetType: ec2.SubnetType.PUBLIC,
-          cidrMask: 24,
-        },
+        {name: 'PrivateSubnet', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24,},
+        {name: 'PublicSubnet', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24,},
       ],
     });
 
@@ -77,10 +68,9 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const namespaceManifestPath = path.join(__dirname, '..', 'manifests', 'namespace-cloudwatch.yaml');
     const namespaceManifestContent = fs.readFileSync(namespaceManifestPath, 'utf8');
     const namespaceDocs = yaml.parseAllDocuments(namespaceManifestContent);
-    const namespaceResources = namespaceDocs.map((doc) => doc.toJSON()).filter(Boolean);
-
-    const cloudwatchNamespace = cluster.addManifest('CloudWatchNamespace', ...namespaceResources);
-
+    const cloudwatchNamespaceResources = namespaceDocs.map((doc) => doc.toJSON()).filter(Boolean);
+    const cloudwatchNamespace = cluster.addManifest('CloudWatchNamespace', ...cloudwatchNamespaceResources);
+    
     const conditionJson = new cdk.CfnJson(this, 'OIDCCondition', {
       value: {
         [`${cluster.openIdConnectProvider.openIdConnectProviderIssuer}:sub`]:
@@ -114,6 +104,26 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     const valuesYamlContent = fs.readFileSync(valuesYamlPath, 'utf8');
     const values = yaml.parse(valuesYamlContent);
 
+    const fluentBit = cluster.addHelmChart(`FluentBit`, {
+      chart: 'aws-for-fluent-bit',
+      repository: 'https://aws.github.io/eks-charts',
+      release: 'fluent-bit',
+      namespace: 'amazon-cloudwatch',
+      createNamespace: false,
+      values: {
+        ...values,
+        serviceAccount: {
+          create: true,
+          name: 'fluent-bit',
+          annotations: {
+            'eks.amazonaws.com/role-arn': fluentBitSaRole.roleArn,
+          },
+        },
+      },
+    });
+
+    fluentBit.node.addDependency(cloudwatchNamespace);
+
     const manifestsDir = 'manifests';
     const files = [
       'namespace.yaml',
@@ -123,8 +133,6 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       'HPA.yaml',
       'job.yaml',
     ];
-
-    let previousHelmChart: eks.HelmChart | undefined = undefined;
 
     for (const envName of Object.keys(envconfigs)) {
       const config = envconfigs[envName];
@@ -136,7 +144,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '{{REQUEST_CPU}}': config.requestCpu || '100m',
         '{{LIMIT_CPU}}': config.limitCpu || '200m',
         '{{FEATURE_FLAG}}': config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
-        '{{LOG_GROUP_NAME}}': `/eks/${envName}/app-logs`,  // Dynamic log group name
+        '{{LOG_GROUP_NAME}}': `/eks/${envName}/app-logs`,
       };
 
       const replacePlaceholders = (content: string) => {
@@ -153,37 +161,15 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         return yaml.parseAllDocuments(content).map((doc) => doc.toJSON()).filter(Boolean);
       });
 
-      const namespaceResources = allResources.filter((res) => res.kind === 'Namespace');
-      const otherResources = allResources.filter((res) => res.kind !== 'Namespace');
-
-      const namespaceManifest = cluster.addManifest(`NamespaceManifest-${envName}`, ...namespaceResources);
-      const appManifest = cluster.addManifest(`AppManifests-${envName}`, ...otherResources);
-
-      appManifest.node.addDependency(namespaceManifest);
-
-      const fluentBit = cluster.addHelmChart(`FluentBit-${envName}`, {
-        chart: 'aws-for-fluent-bit',
-        repository: 'https://aws.github.io/eks-charts',
-        release: `fluent-bit-${envName}`,
-        namespace: 'amazon-cloudwatch',
-        createNamespace: false,  
-        values: {
-          ...values, 
-          serviceAccount: {
-            create: true,
-            name: 'fluent-bit-${envName}',
-            annotations: {
-              'eks.amazonaws.com/role-arn': fluentBitSaRole.roleArn,
-            },
-          },
-        },
+      const sortedResources = allResources.sort((a, b) => {
+        if (a.kind === 'Namespace' && b.kind !== 'Namespace') return -1;
+        if (a.kind !== 'Namespace' && b.kind === 'Namespace') return 1;
+        return 0;
       });
 
-      fluentBit.node.addDependency(cloudwatchNamespace);
-      if (previousHelmChart) {
-        fluentBit.node.addDependency(previousHelmChart);
-      }
-      previousHelmChart = fluentBit;
+      const manifest = cluster.addManifest(`AppManifests-${envName}`, ...sortedResources);
+
+      manifest.node.addDependency(cloudwatchNamespace);
     }
 }}
 
