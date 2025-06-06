@@ -96,7 +96,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
           'logs:PutLogEvents',
           'logs:DescribeLogStreams',
         ],
-        resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/eks/*`],
+        resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/eks/*`, `arn:aws:logs:${this.region}:${this.account}:log-group:/eks/*:log-stream:*`],
       })
     );
 
