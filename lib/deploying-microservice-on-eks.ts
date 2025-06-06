@@ -25,8 +25,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
       ],
     });
 
-    const cluster = new eks.Cluster(this, 'EksCluster', {
-      clusterName: 'EksCluster',
+    const cluster = new eks.Cluster(this, 'EksCluster1', {
+      clusterName: 'EksCluster1',
       defaultCapacity: 0,
       vpc,
       version: eks.KubernetesVersion.V1_28,
@@ -166,7 +166,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         if (a.kind !== 'Namespace' && b.kind === 'Namespace') return 1;
         return 0;
       });
-//test
+//testt
       const manifest = cluster.addManifest(`AppManifests-${envName}`, ...sortedResources);
 
       manifest.node.addDependency(cloudwatchNamespace);
