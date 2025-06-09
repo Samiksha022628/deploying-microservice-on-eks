@@ -166,7 +166,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         if (a.kind !== 'Namespace' && b.kind === 'Namespace') return 1;
         return 0;
       });
-//testt
+//testtt
       const manifest = cluster.addManifest(`AppManifests-${envName}`, ...sortedResources);
 
       manifest.node.addDependency(cloudwatchNamespace);

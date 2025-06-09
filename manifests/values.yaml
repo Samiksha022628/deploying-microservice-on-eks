@@ -1,7 +1,6 @@
 serviceAccount:
   create: true
   name: fluent-bit
-  
 cloudWatch:
   enabled: true
   logGroupName: '/eks/${envName}/app-logs'
